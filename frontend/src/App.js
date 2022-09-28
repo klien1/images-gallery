@@ -6,7 +6,6 @@ import ImageCard from "./components/ImageCard";
 import Welcome from "./components/Welcome";
 import { Container, Row, Col } from "react-bootstrap";
 
-// const UNSPALSH_API_KEY = process.env.REACT_APP_UNSPALSH_API_KEY;
 const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050";
 
 function App() {
@@ -18,7 +17,6 @@ function App() {
     console.log(search);
 
     try {
-      // const url = "https://api.unsplash.com/";
       const randomPicture = await fetch(`${API_URL}/new-image?query=${search}`);
       const data = await randomPicture.json();
       setImages([{ title: search, ...data }, ...images]);
