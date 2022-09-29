@@ -10,6 +10,7 @@ python-dotenv = "*"
 flask-core = "*"
 flask-cors = "*"
 pycodestyle = "*"
+pymongo = "*"
 
 [dev-packages]
 black = "*"
