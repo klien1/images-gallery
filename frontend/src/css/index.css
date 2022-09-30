@@ -5,4 +5,16 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+}
+
+html {
+  height: 100%;
+}
+
+.centerSpinner {
+  display: flex;
+  justify-content: center;
+  align-self: center;
+  height: 100%;
 }

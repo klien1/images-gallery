@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "react-toastify/dist/ReactToastify.css";
 import Header from "./components/Header";
 import Search from "./components/Search";
 import ImageCard from "./components/ImageCard";
 import Welcome from "./components/Welcome";
 import { Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
+import Spinner from "./components/Spinner";
+import { toast, ToastContainer } from "react-toastify";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050";
 
 function App() {
   const [search, setSearch] = useState("");
   const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getSavedImages = async () => {
-    console.log("getting saved iamges");
     try {
       const response = await axios.get(`${API_URL}/images`);
       setImages(response.data || []);
+      setIsLoading(false);
+      toast.success("Saved images downloaded");
     } catch (error) {
-      console.log(error);
+      toast.error(error.message);
     }
   };
 
   useEffect(() => {
+    console.log("useEffect");
     getSavedImages();
   }, []);
 
@@ -34,18 +40,33 @@ function App() {
       const randomPictureResult = await axios.get(
         `${API_URL}/new-image?query=${search}`
       );
+      const upperCaseSearch = search.toUpperCase();
       const data = randomPictureResult.data;
-      // const randomPicture = await fetch(`${API_URL}/new-image?query=${search}`);
-      // const data = await randomPicture.json();
-      setImages([{ title: search, ...data }, ...images]);
+      setImages([{ title: upperCaseSearch, ...data }, ...images]);
       setSearch("");
+      toast.info(`New image ${upperCaseSearch} was found`);
     } catch (error) {
-      console.log(error);
+      toast.error(error.message);
     }
   };
 
-  const handleDeleteImage = (id) => {
-    setImages(images.filter((image) => image.id !== id));
+  const handleDeleteImage = async (id) => {
+    try {
+      let title = "";
+      setImages(
+        images.filter((image) => {
+          if (image.id !== id) return true;
+          title = image.title;
+          return false;
+        })
+      );
+      toast.warn(`Image ${title} was deleted`);
+      await axios.delete(`${API_URL}/images/${id}`);
+      // if (response.status === 200)
+      // else console.log(response.status);
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const handleSaveImage = async (id) => {
@@ -60,39 +81,56 @@ function App() {
             image.id === id ? { ...image, saved: true } : image
           )
         );
+        toast.info(`Image ${imageToBeSaved.title} was saved`);
       }
-      console.log(response.data);
     } catch (error) {
-      console.log(error);
+      toast.error(error.message);
     }
   };
 
   return (
     <div className="App">
       <Header />
-      <Search
-        search={search}
-        setSearch={setSearch}
-        handleSubmit={handleSearchSubmit}
-      />
 
-      {images.length > 0 ? (
-        <Container className="mt-4">
-          <Row xs={1} md={2} lg={3}>
-            {images.map((image, index) => (
-              <Col key={index} className="pb-3">
-                <ImageCard
-                  image={image}
-                  handleDeleteImage={handleDeleteImage}
-                  handleSaveImage={handleSaveImage}
-                />
-              </Col>
-            ))}
-          </Row>
-        </Container>
+      {isLoading ? (
+        <Spinner animation="border" />
       ) : (
-        <Welcome />
+        <div>
+          <Search
+            search={search}
+            setSearch={setSearch}
+            handleSubmit={handleSearchSubmit}
+          />
+          {images.length > 0 ? (
+            <Container className="mt-4">
+              <Row xs={1} md={2} lg={3}>
+                {images.map((image, index) => (
+                  <Col key={index} className="pb-3">
+                    <ImageCard
+                      image={image}
+                      handleDeleteImage={handleDeleteImage}
+                      handleSaveImage={handleSaveImage}
+                    />
+                  </Col>
+                ))}
+              </Row>
+            </Container>
+          ) : (
+            <Welcome />
+          )}
+        </div>
       )}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
+      />
     </div>
   );
 }
